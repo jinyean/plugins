@@ -28,6 +28,7 @@ module.exports.init = function(config, logger, stats) {
 			if (auth===undefined) {
 				sendError(res,401,"Missing authorization header");
 			}
+
       console.log(auth);
 
       var tmp = auth.split(' ');
@@ -39,7 +40,7 @@ module.exports.init = function(config, logger, stats) {
 			if (creds[1]===undefined) {
 				sendError(res,403,"Bad authorization header");
 			}
-			
+
       var username = creds[0];
       var password = creds[1].trim();
 
