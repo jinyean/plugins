@@ -2,12 +2,12 @@
 var debug = require('debug')('plugin:ldap');
 var ldap = require('ldapjs');
 
-function sendError(res) {
+function sendError(res,code,msg) {
 	var errorInfo = {
-		"code": "403",
-		"message": "LDAP failed"
+		"code": code,
+		"message": msg
 	};
-	res.writeHead(403, { 'Content-Type': 'application/json' });
+	res.writeHead(code, { 'Content-Type': 'application/json' });
 	res.write(JSON.stringify(errorInfo));
 	res.end();
 }
@@ -25,6 +25,9 @@ module.exports.init = function(config, logger, stats) {
 
       var auth=req.headers['authorization'];
 
+			if (auth===undefined) {
+				sendError(res,401,"Missing authorization header");
+			}
       console.log(auth);
 
       var tmp = auth.split(' ');
@@ -32,6 +35,11 @@ module.exports.init = function(config, logger, stats) {
       var plain_auth = buf.toString();
 
       var creds = plain_auth.split(':');
+
+			if (creds[1]===undefined) {
+				sendError(res,403,"Bad authorization header");
+			}
+			
       var username = creds[0];
       var password = creds[1].trim();
 
@@ -42,7 +50,7 @@ module.exports.init = function(config, logger, stats) {
 
       client.bind(dn, password, function(err) {
         if (err) {
-           sendError(res);
+           sendError(res,403,"LDAP bind failed");
         } else {
            console.log("Bind Successfull");
            next();
